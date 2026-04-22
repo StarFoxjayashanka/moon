@@ -17,6 +17,7 @@ export default function Navigation() {
   const navLinks = [
     { label: 'Identity', href: '#identity' },
     { label: 'Projects', href: '#projects' },
+    { label: 'Expertise', href: '#services' },
     { label: 'Gallery', href: '#gallery' },
     { label: 'Contact', href: '#contact' },
   ];

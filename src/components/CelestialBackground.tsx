@@ -86,46 +86,69 @@ export default function CelestialBackground() {
       <motion.div
         id="hero-moon"
         style={{ y: moonY, scale: moonScale }}
-        className="absolute top-[15%] left-1/2 -translate-x-1/2 w-[70vw] h-[70vw] max-w-[600px] max-h-[600px] rounded-full z-10"
+        className="absolute top-[15%] left-1/2 -translate-x-1/2 w-[70vw] h-[70vw] max-w-[600px] max-h-[600px] z-10"
       >
-        {/* Moon Base Texture - Using a high quality Unsplash moon */}
-        <div 
-          className="w-full h-full rounded-full relative group shadow-[0_0_100px_rgba(59,130,246,0.3)] transition-shadow duration-700"
-          style={{
-            backgroundImage: `url('https://images.unsplash.com/photo-1520690214124-2405c52470bb?auto=format&fit=crop&q=80&w=1200')`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            filter: 'hue-rotate(190deg) brightness(1.2) contrast(1.1)',
-          }}
-        >
-          {/* Celestial Glow */}
-          <div className="absolute inset-0 rounded-full shadow-[inset_0_0_60px_rgba(59,130,246,0.5)] bg-blue-500/10" />
+        <div className="relative w-full h-full rounded-full overflow-hidden shadow-[0_0_100px_rgba(59,130,246,0.3)]">
+          {/* High-Resolution Moon Image */}
+          <img 
+            src="https://upload.wikimedia.org/wikipedia/commons/e/e1/FullMoon2010.jpg" 
+            alt="Real Moon"
+            className="w-full h-full object-cover transition-transform duration-700"
+            referrerPolicy="no-referrer"
+            style={{
+              filter: 'grayscale(0.1) brightness(1.1) contrast(1.1) hue-rotate(190deg)',
+            }}
+          />
           
-          {/* Real Lunar Phase Masking */}
-          <div className="absolute inset-0 rounded-full overflow-hidden">
-            {/* The Shadow Overlay */}
-            <motion.div 
-              className="absolute inset-0 bg-[#020617]/95"
-              style={{
-                borderRadius: '50%',
-                // Moving shadow based on phase
-                // 0%: Full coverage (New), 50%: Half (Quarter), 100%: None (Full), then reveals again
-                x: moonInfo.phase <= 0.5 
-                    ? `${-100 + (moonInfo.phase * 200)}%` // -100 to 0 (New to Full)
-                    : `${(moonInfo.phase - 0.5) * 200}%`   // 0 to 100 (Full to New)
-              }}
-              transition={{ duration: 2, ease: "easeInOut" }}
-            />
-            {/* Soft inner shadow for depth */}
-            <div className="absolute inset-0 rounded-full shadow-[inset_-10px_-10px_40px_rgba(0,0,0,0.8),inset_10px_10px_40px_rgba(59,130,246,0.2)]" />
+          {/* Blue luminescence overlay */}
+          <div className="absolute inset-0 bg-blue-500/10 mix-blend-color pointer-events-none" />
+
+          {/* Lunar Phase Shadow Mask */}
+          <div className="absolute inset-0 pointer-events-none">
+            <svg viewBox="0 0 100 100" className="w-full h-full">
+              <defs>
+                <mask id="moonShadowMask">
+                  <rect x="0" y="0" width="100" height="100" fill="white" />
+                  <path 
+                    d={getMoonShadowPath(moonInfo.phase)} 
+                    fill="black" 
+                  />
+                </mask>
+              </defs>
+              <circle cx="50" cy="50" r="51" fill="#020617" opacity="0.94" mask="url(#moonShadowMask)" />
+            </svg>
           </div>
-          
-          {/* Surface blue luminescence */}
-          <div className="absolute inset-0 rounded-full mix-blend-screen opacity-40 bg-[radial-gradient(circle_at_30%_30%,#60a5fa,transparent_70%)]" />
+
+          {/* Glow and Atmosphere */}
+          <div className="absolute inset-0 rounded-full shadow-[inset_0_0_60px_rgba(59,130,246,0.3)] pointer-events-none" />
+          <div className="absolute -inset-4 rounded-full bg-blue-400/5 blur-xl pointer-events-none" />
         </div>
       </motion.div>
     </div>
   );
+}
+
+/**
+ * Generates an SVG path for the moon shadow based on its phase (0-1)
+ * This creates a realistic terminator line transition.
+ */
+function getMoonShadowPath(phase: number): string {
+  const r = 50;
+  const sweep = phase <= 0.5 ? 0 : 1;
+  const intensity = Math.cos(phase * 2 * Math.PI); // -1 to 1
+  const xRadius = Math.abs(intensity * r);
+  const largeArc = phase > 0.25 && phase < 0.75 ? 0 : 1;
+
+  // Simplified realistic terminator
+  if (phase === 0.5) return "M 0 0 L 0 0"; // Full Moon - no shadow
+  
+  if (phase < 0.5) {
+    // Waxing
+    return `M 50 0 A 50 50 0 0 0 50 100 A ${xRadius} 50 0 0 ${intensity > 0 ? 1 : 0} 50 0`;
+  } else {
+    // Waning
+    return `M 50 0 A 50 50 0 0 1 50 100 A ${xRadius} 50 0 0 ${intensity < 0 ? 1 : 0} 50 0`;
+  }
 }
 
 function CursorTrail() {
